@@ -76,7 +76,7 @@ def tipSomeone(update, ctx):
         if target is not None:
             if not db.getUserID(target):
                 ctx.bot.send_message(chat_id=update.message.chat_id,
-                                     text="Oops, looks like your sending to a user who hasn't registered. Ask them to do /help to register!\nPlease be mindful that usernames are case senstive. Make sure that the case of the target is correct")
+                                     text="Oops, looks like your sending to a user who hasn't registered. Ask them to do /help to register!\nPlease be mindful that usernames are case senstive. Make sure that the case of the target is correct.")
             else:
                 if user["username"] == target:
                     ctx.bot.send_message(chat_id=update.message.chat_id, text="😆 You can't tip yourself!")
@@ -85,8 +85,8 @@ def tipSomeone(update, ctx):
                         if isFloat(amount):
                             if float(amount) > 0:
                                 keyboard = [
-                                    [InlineKeyboardButton("Yes", callback_data=f"Y, {target}, {amount}"),
-                                     InlineKeyboardButton("No", callback_data=f"N, {target}, {amount}")]
+                                    [InlineKeyboardButton("Yes", callback_data=f"Y, {target}, {amount}, {user['id']}"),
+                                     InlineKeyboardButton("No", callback_data=f"N, {target}, {amount}, {user['id']}")]
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
                                 ctx.bot.send_message(chat_id=update.message.chat_id,
@@ -153,23 +153,24 @@ def tip(update, ctx):
     msgID = query.message.message_id
     query.answer()
     data = str(query.data).split(", ")
-    sender = query.from_user.id
+    sender = str(query.from_user.id)
     target = db.getUserID(data[1])
-    if data[0] == "Y":
-        ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-        sender_wif = db.getWIF(sender)
-        target_address = getAddress(target)
-        sender_address = getAddress(sender)
-        sender_balance = getBalance(sender)
-        value = 0
-        amount = convertToSatoshis(float(data[2]))
-        api = requests.get(f"{config['apiUrl']}/unspent/{sender_address}").json()["result"]
-        print(api)
-        print(sender_balance)
-        ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{data[1]} {data[2]} {config['coin']['ticker']}")
-    elif data[0] == "N":
-        ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-        ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{data[1]} {data[2]} {config['coin']['ticker']}")
+    if sender == data[3]:
+        if data[0] == "Y":
+            ctx.bot.delete_message(chat_id=chID, message_id=msgID)
+            sender_wif = db.getWIF(sender)
+            target_address = getAddress(target)
+            sender_address = getAddress(sender)
+            sender_balance = getBalance(sender)
+            value = 0
+            amount = convertToSatoshis(float(data[2]))
+            api = requests.get(f"{config['apiUrl']}/unspent/{sender_address}").json()["result"]
+            print(api)
+            print(sender_balance)
+            ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{data[1]} {data[2]} {config['coin']['ticker']}")
+        elif data[0] == "N":
+            ctx.bot.delete_message(chat_id=chID, message_id=msgID)
+            ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{data[1]} {data[2]} {config['coin']['ticker']}")
 
 
 def getBalance(id: str):
