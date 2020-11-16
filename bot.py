@@ -7,7 +7,7 @@ import requests
 import db
 
 from bitcoinutils.setup import setup
-from bitcoinutils.keys import P2wpkhAddress, P2wshAddress, P2shAddress, P2pkhAddress, PrivateKey
+from bitcoinutils.keys import P2wpkhAddress, PrivateKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 from bitcoinutils.script import Script
 
@@ -57,6 +57,16 @@ def help(update, ctx):
                                  parse_mode="MarkdownV2")
     else:
         ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{user['first_name']}](tg://user?id={user['id']}), please set a username before using this bot", parse_mode="MarkdownV2")
+
+
+def about(update, ctx):
+    ctx.bot.send_message(chat_id=update.message.chat_id,
+                         text="""
+                         Hello there,
+ I am the Sugarchain Telegram Tipbot, created by [salmaan1234](tg://user?id=905257225)\\. Run /help to see my full list of commands\\.
+ This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)\\.
+                         """, parse_mode="MarkdownV2")
+
 
 def price(update, ctx):
 
@@ -379,6 +389,7 @@ def main():
     deposit_command = CommandHandler('deposit', deposit)
     balance_command = CommandHandler('balance', balance)
     withdraw_command = CommandHandler('withdraw', withdraw)
+    about_command = CommandHandler('about', about)
     tip_or_withdraw_handler = CallbackQueryHandler(tip_or_withdrawFunc)
     dispatcher.add_handler(help_command)
     dispatcher.add_handler(price_command)
@@ -386,6 +397,7 @@ def main():
     dispatcher.add_handler(deposit_command)
     dispatcher.add_handler(balance_command)
     dispatcher.add_handler(withdraw_command)
+    dispatcher.add_handler(about_command)
 
     dispatcher.add_handler(tip_or_withdraw_handler)
 
