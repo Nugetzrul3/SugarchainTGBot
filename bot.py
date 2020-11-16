@@ -34,6 +34,7 @@ def help(update, ctx):
     4\\. /deposit
     5\\. /balance
     6\\. /withdraw address amount
+    7\\. /about
             """, parse_mode="MarkdownV2")
             ctx.bot.send_message(chat_id=update.message.chat_id,
                                  text="*Please Note: * It is highly recommended that you do not directly mine to the "
@@ -49,6 +50,7 @@ def help(update, ctx):
     4\\. /deposit
     5\\. /balance
     6\\. /withdraw address amount
+    7\\. /about
             """, parse_mode="MarkdownV2")
             ctx.bot.send_message(chat_id=update.message.chat_id,
                                  text="*Please Note: * It is highly recommended that you do not directly mine to the "
