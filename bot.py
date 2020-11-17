@@ -112,8 +112,8 @@ def tip(update, ctx):
                             if float(amount) > float(config['coin']['minFee']):
                                 keyboard = [
                                     [
-                                        InlineKeyboardButton("Yes", callback_data=f"Y, {target}, {amount}, {user['id']}, tip"),
-                                        InlineKeyboardButton("No", callback_data=f"N, {target}, {amount}, {user['id']}, tip")
+                                        InlineKeyboardButton("Yes", callback_data=f"Y,{target},{amount},{user['id']},t"),
+                                        InlineKeyboardButton("No", callback_data=f"N,{target},{amount},{user['id']},t")
                                     ]
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
@@ -159,8 +159,8 @@ def withdraw(update, ctx):
                         if float(amount) > float(config['coin']['minFee']):
                             keyboard = [
                                 [
-                                    InlineKeyboardButton("Yes", callback_data=f"Y, {address}, {amount}, {user['id']}, w"),
-                                    InlineKeyboardButton("No", callback_data=f"N, {address}, {amount}, {user['id']}, w")
+                                    InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
+                                    InlineKeyboardButton("No", callback_data=f"N,{address},{amount},{user['id']},w")
                                 ]
                             ]
                             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -233,7 +233,7 @@ def tip_or_withdrawFunc(update, ctx):
     data = str(query.data).split(", ")
     sender = str(query.from_user.id)
     if sender == data[3]:
-        if data[4] == "tip":
+        if data[4] == "t":
             target = db.getUserID(data[1])
             if data[0] == "Y":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
