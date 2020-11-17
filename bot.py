@@ -230,7 +230,7 @@ def tip_or_withdrawFunc(update, ctx):
     chID = query.message.chat.id
     msgID = query.message.message_id
     query.answer()
-    data = str(query.data).split(", ")
+    data = str(query.data).split(",")
     sender = str(query.from_user.id)
     if sender == data[3]:
         if data[4] == "t":
