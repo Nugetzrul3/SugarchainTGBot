@@ -1,5 +1,6 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.utils.helpers import escape_markdown
 
 import logging
 import json
@@ -25,9 +26,9 @@ def help(update, ctx):
         if not db.checkUser(str(user["id"])):
             wif = genAddress()
             db.addUser(str(user["username"]), str(user["id"]), str(wif))
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{user['first_name']}](tg://user?id={user['id']}), You have been successfully registered", parse_mode="MarkdownV2")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'])}](tg://user?id={user['id']}), You have been successfully registered", parse_mode="MarkdownV2")
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-    Hey there [{user['first_name']}](tg://user?id={user['id']})\\. Here are my commands:
+    Hey there [{escape_markdown(user['first_name'])}](tg://user?id={user['id']})\\. Here are my commands:
     1\\. /help
     2\\. /price
     3\\. /tip @user amount
@@ -43,7 +44,7 @@ def help(update, ctx):
                                  parse_mode="MarkdownV2")
         else:
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-    Hey there [{user['first_name']}](tg://user?id={user['id']})\\. Here are my commands:
+    Hey there [{escape_markdown(user['first_name'])}](tg://user?id={user['id']})\\. Here are my commands:
     1\\. /help
     2\\. /price
     3\\. /tip @user amount
@@ -58,7 +59,7 @@ def help(update, ctx):
                                       "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
                                  parse_mode="MarkdownV2")
     else:
-        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{user['first_name']}](tg://user?id={user['id']}), please set a username before using this bot", parse_mode="MarkdownV2")
+        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'])}](tg://user?id={user['id']}), please set a username before using this bot", parse_mode="MarkdownV2")
 
 
 def about(update, ctx):
@@ -392,6 +393,7 @@ def main():
     balance_command = CommandHandler('balance', balance)
     withdraw_command = CommandHandler('withdraw', withdraw)
     about_command = CommandHandler('about', about)
+
     tip_or_withdraw_handler = CallbackQueryHandler(tip_or_withdrawFunc)
     dispatcher.add_handler(help_command)
     dispatcher.add_handler(price_command)
