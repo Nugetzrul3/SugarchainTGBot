@@ -337,7 +337,7 @@ def tip_or_withdrawFunc(update, ctx):
                     ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to withdraw the specified amount.")
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined withdrawing {data[2]} {config['coin']['ticker']} to address {data[1]}")
+                ctx.bot.send_message(chat_id=chID, text=f"You declined withdrawing {data[2]} {config['coin']['ticker']} to address {'sugar1q' + data[1]}")
 
 
 def getBalance(id: str):
