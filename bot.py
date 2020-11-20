@@ -8,6 +8,10 @@ import requests
 import db
 import strict_rfc3339
 import time
+import os
+import platform
+import threading
+from datetime import datetime
 
 from bitcoinutils.setup import setup
 from bitcoinutils.keys import P2wpkhAddress, PrivateKey
@@ -421,6 +425,29 @@ def convertToSatoshis(amount: float):
 
 def convertToSugar(amount: int):
     return float(round(amount / 100000000))
+
+def backup():
+    path = 'dbbackup'
+    threading.Timer(600.0, backup).start()
+    if os.path.exists(path):
+        if platform.system() == "Windows":
+            os.system(f"copy tguserdb.db {path}\\tguserdb.db /y")
+            print(f"{datetime.utcnow()} UTC Database backed up :)")
+        elif platform.system() == "Linux":
+            os.system(f"cp tguserdb.db {path}/tguserdb.db")
+            print(f"{datetime.utcnow()} UTC Database backed up :)")
+    else:
+        if platform.system() == "Windows":
+            os.mkdir(path)
+            os.system(f"copy tguserdb.db {path}\\tguserdb.db /y")
+            print(f"{datetime.utcnow()} UTC Database backed up :)")
+        elif platform.system() == "Linux":
+            os.mkdir(path)
+            os.system(f"cp tguserdb.db {path}/tguserdb.db")
+            print(f"{datetime.utcnow()} UTC Database backed up :)")
+
+backup()
+
 
 ### LAUNCH
 
