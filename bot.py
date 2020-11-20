@@ -22,14 +22,16 @@ with open("configs/config.json", "r") as f:
 
 ### COMMANDS
 
+timestart = int(time.time())
 
 def help(update, ctx):
-    user = update.message.from_user
     gettime = str(update.message.date).split()
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
+
+        user = update.message.from_user
 
         if user["username"]:
             if not db.checkUser(str(user["id"])):
@@ -76,7 +78,7 @@ def about(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
         ctx.bot.send_message(chat_id=update.message.chat_id,
                              text="""
                              Hello there,
@@ -90,7 +92,7 @@ def price(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
 
         price = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={config['coin']['coin_name']}&vs_currencies=usd,btc").json()
 
@@ -105,7 +107,7 @@ def tip(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
 
         user = update.message.from_user
         args = update.message.text.split(" ")
@@ -139,7 +141,7 @@ def tip(update, ctx):
                                 if float(amount) > float(config['coin']['minFee']):
                                     keyboard = [
                                         [
-                                            InlineKeyboardButton("Yes", callback_data=f"Y,{target},{amount},{user['id']},t"),
+                                            InlineKeyboardButton("Yes", callback_data=f"Y,{db.getUserID(target)},{amount},{user['id']},t"),
                                             InlineKeyboardButton("No", callback_data=f"N,{target},{amount},{user['id']},t")
                                         ]
                                     ]
@@ -164,7 +166,7 @@ def withdraw(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
 
         user = update.message.from_user
         args = update.message.text.split(" ")
@@ -217,7 +219,7 @@ def deposit(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
 
         user = update.message.from_user
 
@@ -235,7 +237,7 @@ def balance(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
-    if int(time.time()) < int(timestamp):
+    if timestart < int(timestamp):
 
         user = update.message.from_user
 
@@ -277,7 +279,7 @@ def tip_or_withdrawFunc(update, ctx):
     sender = str(query.from_user.id)
     if sender == data[3]:
         if data[4] == "t":
-            target = db.getUserID(data[1])
+            target = data[1]
             if data[0] == "Y":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
 
@@ -320,14 +322,14 @@ def tip_or_withdrawFunc(update, ctx):
 
                     txid = requests.post(f"{config['apiUrl']}/broadcast", data=post_data).json()['result']
 
-                    ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{data[1]} {data[2]} {config['coin']['ticker']}.")
+                    ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{db.getUserName(data[1])} {data[2]} {config['coin']['ticker']}.")
                     ctx.bot.send_message(chat_id=chID, text=f"[View Transaction](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
                 else:
                     ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to tip that amount")
 
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{data[1]} {data[2]} {config['coin']['ticker']}")
+                ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{db.getUserName(data[1])} {data[2]} {config['coin']['ticker']}")
 
         elif data[4] == "w":
             if data[0] == "Y":

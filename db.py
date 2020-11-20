@@ -44,6 +44,13 @@ def getUserID(username: str):
         cursor.execute(f"SELECT userid FROM userlist WHERE name='{username}'")
         return list(cursor.fetchall()[0])[0]
 
+def getUserName(id: str):
+    connection = sqlite3.connect("tguserdb.db")
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT name FROM userlist WHERE userid={id}")
+
+    return list(cursor.fetchall()[0])[0]
+
 def getWIF(id: str):
     connection = sqlite3.connect("tguserdb.db")
     cursor = connection.cursor()
