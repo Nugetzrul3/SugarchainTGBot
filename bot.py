@@ -39,14 +39,14 @@ def help(update, ctx):
                 db.addUser(str(user["username"]), str(user["id"]), str(wif))
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), You have been successfully registered", parse_mode="MarkdownV2")
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-        Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
-        1\\. /help
-        2\\. /price
-        3\\. /tip @user amount
-        4\\. /deposit
-        5\\. /balance
-        6\\. /withdraw address amount
-        7\\. /about
+Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+1\\. /help
+2\\. /price
+3\\. /tip @user amount
+4\\. /deposit
+5\\. /balance
+6\\. /withdraw address amount
+7\\. /about
                 """, parse_mode="MarkdownV2")
                 ctx.bot.send_message(chat_id=update.message.chat_id,
                                      text="*Please Note: * It is highly recommended that you do not directly mine to the "
@@ -55,14 +55,14 @@ def help(update, ctx):
                                      parse_mode="MarkdownV2")
             else:
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-        Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
-        1\\. /help
-        2\\. /price
-        3\\. /tip @user amount
-        4\\. /deposit
-        5\\. /balance
-        6\\. /withdraw address amount
-        7\\. /about
+Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+1\\. /help
+2\\. /price
+3\\. /tip @user amount
+4\\. /deposit
+5\\. /balance
+6\\. /withdraw address amount
+7\\. /about
                 """, parse_mode="MarkdownV2")
                 ctx.bot.send_message(chat_id=update.message.chat_id,
                                      text="*Please Note: * It is highly recommended that you do not directly mine to the "
@@ -81,9 +81,9 @@ def about(update, ctx):
     if timestart < int(timestamp):
         ctx.bot.send_message(chat_id=update.message.chat_id,
                              text="""
-                             Hello there,
-     I am the Sugarchain Telegram Tipbot, created by [salmaan1234](tg://user?id=905257225)\\. Run /help to see my full list of commands\\.
-     This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)\\.
+Hello there,
+I am the Sugarchain Telegram Tipbot, created by [salmaan1234](tg://user?id=905257225)\\. Run /help to see my full list of commands\\.
+This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)\\.
                              """, parse_mode="MarkdownV2")
 
 
