@@ -433,9 +433,13 @@ def backup():
     t.start()
     if os.path.exists(path):
         if platform.system() == "Windows":
+            if os.path.exists(f"{path}\\tguserdb.db"):
+                os.system(f"del {path}\\tguserdb.db")
             os.system(f"copy tguserdb.db {path}\\tguserdb.db /y")
             print(f"{datetime.utcnow()} UTC Database backed up :)")
         elif platform.system() == "Linux":
+            if os.path.exists(f"{path}/tguserdb.db"):
+                os.system(f"rm -rf {path}/tguserdb.db")
             os.system(f"cp tguserdb.db {path}/tguserdb.db")
             print(f"{datetime.utcnow()} UTC Database backed up :)")
     else:
