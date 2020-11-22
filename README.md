@@ -11,7 +11,7 @@
           "coin": {
             "ticker": "COIN TICKER",
             "coin_name": "COIN NAME IN LOWERCASE",
-            "minFee": MINIMUM TX FEE IN DECIMAL FORM
+            "minFee": "MINIMUM TX FEE"
           },
           "apiUrl": "API URL WITH ADDRESS INDEX"
         }

@@ -12,6 +12,7 @@ import os
 import platform
 import threading
 from datetime import datetime
+from decimal import Decimal
 
 from bitcoinutils.setup import setup
 from bitcoinutils.keys import P2wpkhAddress, PrivateKey
@@ -288,11 +289,11 @@ def tip_or_withdrawFunc(update, ctx):
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
 
                 sender_wif = PrivateKey(db.getWIF(sender))
-                fee = convertToSatoshis(float(config['coin']['minFee']))
+                fee = convertToSatoshis(Decimal(config['coin']['minFee']))
                 target_address = P2wpkhAddress(getAddress(target))
                 sender_address = P2wpkhAddress(getAddress(sender))
                 sender_balance = 0
-                amount = convertToSatoshis(float(data[2])) + fee
+                amount = convertToSatoshis(Decimal(data[2])) + fee
 
                 unspent = requests.get(f"{config['apiUrl']}/unspent/{sender_address.to_string()}").json()["result"]
                 txin = []
@@ -340,10 +341,10 @@ def tip_or_withdrawFunc(update, ctx):
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
 
                 sender_wif = PrivateKey(db.getWIF(sender))
-                fee = convertToSatoshis(float(config['coin']['minFee']))
+                fee = convertToSatoshis(Decimal(config['coin']['minFee']))
                 sender_address = P2wpkhAddress(getAddress(sender))
                 sender_balance = 0
-                amount = convertToSatoshis(float(data[2])) + fee
+                amount = convertToSatoshis(Decimal(data[2])) + fee
                 target_address = P2wpkhAddress("sugar1q" + data[1])
 
                 unspent = requests.get(f"{config['apiUrl']}/unspent/{sender_address.to_string()}").json()['result']
@@ -420,11 +421,10 @@ def getAddress(id: str):
 
     return address
 
-def convertToSatoshis(amount: float):
+
+def convertToSatoshis(amount: Decimal):
     return int(round(amount * 100000000))
 
-def convertToSugar(amount: int):
-    return float(round(amount / 100000000))
 
 def backup():
     path = 'dbbackup'
