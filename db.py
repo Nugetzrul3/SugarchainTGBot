@@ -22,15 +22,6 @@ def checkUser(id: str):
     else:
         return True
 
-def removeUser(id: str):
-    connection = sqlite3.connect("tguserdb.db")
-    cursor = connection.cursor()
-
-    cursor.execute(f"DELETE FROM userlist WHERE userid={id}")
-
-    connection.commit()
-    connection.close()
-
 def getUserID(username: str):
     connection = sqlite3.connect("tguserdb.db")
     cursor = connection.cursor()
