@@ -466,7 +466,7 @@ def backup():
             os.system(f"cp tguserdb.db {path}/tguserdb.db")
             print(f"{datetime.utcnow()} UTC Database backed up :)")
 
-#backup()
+backup()
 
 
 ### LAUNCH
