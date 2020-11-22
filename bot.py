@@ -234,7 +234,7 @@ def deposit(update, ctx):
 
             address = getAddress(user["id"])
 
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your deposit address: {address}")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your deposit address: <code>{address}</code>", parse_mode="HTML")
 
 
 def balance(update, ctx):
@@ -252,6 +252,20 @@ def balance(update, ctx):
             balance = getBalance(user["id"])
 
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You current balance: {balance} {config['coin']['ticker']}")
+
+
+def export(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+        user = update.message.from_user
+        if update.message.chat.type == "private":
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You're exported secret key: <code>{db.getWIF(user['id'])}</code>. <b>Important:</b> Do not share this key. If you do share this key, all your SUGAR will be lost.", parse_mode="HTML")
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id, text="This command only works in private messages."
+                                                                      " Send me a private message instead :D")
 
 ### FUNCTIONS
 
@@ -452,7 +466,7 @@ def backup():
             os.system(f"cp tguserdb.db {path}/tguserdb.db")
             print(f"{datetime.utcnow()} UTC Database backed up :)")
 
-backup()
+#backup()
 
 
 ### LAUNCH
@@ -470,6 +484,7 @@ def main():
     balance_command = CommandHandler('balance', balance)
     withdraw_command = CommandHandler('withdraw', withdraw)
     about_command = CommandHandler('about', about)
+    export_command = CommandHandler('export', export)
 
     tip_or_withdraw_handler = CallbackQueryHandler(tip_or_withdrawFunc)
     dispatcher.add_handler(help_command)
@@ -479,6 +494,7 @@ def main():
     dispatcher.add_handler(balance_command)
     dispatcher.add_handler(withdraw_command)
     dispatcher.add_handler(about_command)
+    dispatcher.add_handler(export_command)
 
     dispatcher.add_handler(tip_or_withdraw_handler)
 
