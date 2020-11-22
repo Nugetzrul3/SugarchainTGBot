@@ -428,7 +428,9 @@ def convertToSatoshis(amount: Decimal):
 
 def backup():
     path = 'dbbackup'
-    threading.Timer(600.0, backup).start()
+    t = threading.Timer(600.0, backup)
+    t.daemon = True
+    t.start()
     if os.path.exists(path):
         if platform.system() == "Windows":
             os.system(f"copy tguserdb.db {path}\\tguserdb.db /y")
