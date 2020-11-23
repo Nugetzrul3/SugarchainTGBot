@@ -49,7 +49,7 @@ def help(update, ctx):
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
-2\\. /price
+2\\. /info
 3\\. /tip @user amount
 4\\. /deposit
 5\\. /balance
@@ -65,7 +65,7 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
-2\\. /price
+2\\. /info
 3\\. /tip @user amount
 4\\. /deposit
 5\\. /balance
@@ -95,7 +95,7 @@ This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)
                              """, parse_mode="MarkdownV2")
 
 
-def price(update, ctx):
+def info(update, ctx):
     gettime = str(update.message.date).split()
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
@@ -103,11 +103,24 @@ def price(update, ctx):
     if timestart < int(timestamp):
 
         price = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={config.coin['coin_name']}&vs_currencies=usd,btc").json()
+        info = requests.get(f"{config.apiUrl}/info").json()
 
         btc = str(format(price["sugarchain"]["btc"], '.8f'))
         usd = str(price["sugarchain"]["usd"])
 
-        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Current {config.coin['ticker']}/BTC price: {btc} BTC\nCurrent {config.coin['ticker']}/USD price: ${usd}")
+        blocks = str(info['result']['blocks'])
+        hash = formathash(int(info['result']['nethash']))
+        diff = str(info['result']['difficulty'])
+        supply = str(convertToSugar(info['result']['supply']))
+
+        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+Current block height: <code>{blocks}</code>
+Current network hashrate: <code>{hash}</code>
+Current network difficulty: <code>{diff}</code>
+Current circulating supply: <code>{supply}</code>
+Current {config.coin['ticker']}/BTC price: {btc} BTC
+Current {config.coin['ticker']}/USD price: ${usd}
+""", parse_mode="HTML")
 
 
 def tip(update, ctx):
@@ -279,6 +292,18 @@ def isFloat(amount):
     except ValueError:
         return False
 
+def formathash(hash: int):
+    if hash < 1e3:
+        return str(hash) + " H/s"
+    elif 1e3 <= hash < 1e6:
+        return str(hash / 1e3) + " KH/s"
+    elif 1e6 <= hash < 1e9:
+        return str(hash / 1e6) + " MH/s"
+    elif 1e9 <= hash < 1e12:
+        return str(hash / 1e9) + " GH/s"
+    elif 1e12 <= hash < 1e15:
+        return str(hash / 1e12) + " TH/s"
+
 
 def genAddress():
     # Initialise bitcoin.py
@@ -442,6 +467,9 @@ def getAddress(id: str):
 def convertToSatoshis(amount: Decimal):
     return int(round(amount * 100000000))
 
+def convertToSugar(amount: int):
+    return Decimal(amount / 100000000)
+
 
 def backup():
     path = 'dbbackup'
@@ -481,7 +509,7 @@ def main():
     dispatcher = updater.dispatcher
 
     help_command = CommandHandler('help', help)
-    price_command = CommandHandler('price', price)
+    price_command = CommandHandler('info', info)
     tip_command = CommandHandler('tip', tip)
     deposit_command = CommandHandler('deposit', deposit)
     balance_command = CommandHandler('balance', balance)
