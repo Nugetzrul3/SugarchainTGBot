@@ -3,7 +3,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.utils.helpers import escape_markdown
 
 import logging
-import json
 import requests
 import db
 import strict_rfc3339
@@ -18,16 +17,20 @@ from bitcoinutils.setup import setup
 from bitcoinutils.keys import P2wpkhAddress, PrivateKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 from bitcoinutils.script import Script
+from bitcoinutils import constants
+
+from configs import config
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
-config = {}
-with open("configs/config.json", "r") as f:
-    config = (json.load(f))
 
 ### COMMANDS
 
 timestart = int(time.time())
+
+constants.NETWORK_WIF_PREFIXES['mainnet'] = config.coin['WIF_PREFIX']
+constants.NETWORK_SEGWIT_PREFIXES['mainnet'] = config.coin['bech32']
+constants.NETWORK_P2PKH_PREFIXES['mainnet'] = config.coin['P2PKH_PREFIX']
+constants.NETWORK_P2SH_PREFIXES['mainnet'] = config.coin['P2SH_PREFIX']
 
 def help(update, ctx):
     gettime = str(update.message.date).split()
@@ -99,12 +102,12 @@ def price(update, ctx):
 
     if timestart < int(timestamp):
 
-        price = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={config['coin']['coin_name']}&vs_currencies=usd,btc").json()
+        price = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={config.coin['coin_name']}&vs_currencies=usd,btc").json()
 
         btc = str(format(price["sugarchain"]["btc"], '.8f'))
         usd = str(price["sugarchain"]["usd"])
 
-        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Current {config['coin']['ticker']}/BTC price: {btc} BTC\nCurrent {config['coin']['ticker']}/USD price: ${usd}")
+        ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Current {config.coin['ticker']}/BTC price: {btc} BTC\nCurrent {config.coin['ticker']}/USD price: ${usd}")
 
 
 def tip(update, ctx):
@@ -143,7 +146,7 @@ def tip(update, ctx):
                     else:
                         if amount is not None:
                             if isFloat(amount):
-                                if float(amount) > float(config['coin']['minFee']):
+                                if float(amount) > float(config.coin['minFee']):
                                     keyboard = [
                                         [
                                             InlineKeyboardButton("Yes", callback_data=f"Y,{db.getUserID(target)},{amount},{user['id']},t"),
@@ -152,7 +155,7 @@ def tip(update, ctx):
                                     ]
                                     reply_markup = InlineKeyboardMarkup(keyboard)
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                         text=f"You are about to send {amount} {config['coin']['ticker']} with an additional fee of {format(config['coin']['minFee'], '.8f')} SUGAR to @{target}. Please click Yes to confirm",
+                                                         text=f"You are about to send {amount} {config.coin['ticker']} with an additional fee of {format(config.coin['minFee'], '.8f')} SUGAR to @{target}. Please click Yes to confirm",
                                                          reply_markup=reply_markup)
                                 else:
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
@@ -196,7 +199,7 @@ def withdraw(update, ctx):
                 if checkAdd("sugar1q" + address):
                     if amount is not None:
                         if isFloat(amount):
-                            if float(amount) > float(config['coin']['minFee']):
+                            if float(amount) > float(config.coin['minFee']):
                                 keyboard = [
                                     [
                                         InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
@@ -205,7 +208,7 @@ def withdraw(update, ctx):
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
                                 ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                     text=f"You are about to withdraw {amount} {config['coin']['ticker']}, with a fee of {format(config['coin']['minFee'], '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
+                                                     text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(config.coin['minFee'], '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
                                                      reply_markup=reply_markup)
                             else:
                                 ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
@@ -251,7 +254,7 @@ def balance(update, ctx):
         else:
             balance = getBalance(user["id"])
 
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You current balance: {balance} {config['coin']['ticker']}")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You current balance: {balance} {config.coin['ticker']}")
 
 
 def export(update, ctx):
@@ -303,13 +306,13 @@ def tip_or_withdrawFunc(update, ctx):
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
 
                 sender_wif = PrivateKey(db.getWIF(sender))
-                fee = convertToSatoshis(Decimal(config['coin']['minFee']))
+                fee = convertToSatoshis(Decimal(config.coin['minFee']))
                 target_address = P2wpkhAddress(getAddress(target))
                 sender_address = P2wpkhAddress(getAddress(sender))
                 sender_balance = 0
                 amount = convertToSatoshis(Decimal(data[2])) + fee
 
-                unspent = requests.get(f"{config['apiUrl']}/unspent/{sender_address.to_string()}").json()["result"]
+                unspent = requests.get(f"{config.apiUrl}/unspent/{sender_address.to_string()}").json()["result"]
                 txin = []
                 for i in range(0, len(unspent)):
                     sender_balance += unspent[i]['value']
@@ -339,29 +342,29 @@ def tip_or_withdrawFunc(update, ctx):
                         'raw': tx.serialize()
                     }
 
-                    txid = requests.post(f"{config['apiUrl']}/broadcast", data=post_data).json()['result']
+                    txid = requests.post(f"{config.apiUrl}/broadcast", data=post_data).json()['result']
 
-                    ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{db.getUserName(data[1])} {data[2]} {config['coin']['ticker']}.")
+                    ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}.")
                     ctx.bot.send_message(chat_id=chID, text=f"[View Transaction](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
                 else:
                     ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to tip that amount")
 
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{db.getUserName(data[1])} {data[2]} {config['coin']['ticker']}")
+                ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}")
 
         elif data[4] == "w":
             if data[0] == "Y":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
 
                 sender_wif = PrivateKey(db.getWIF(sender))
-                fee = convertToSatoshis(Decimal(config['coin']['minFee']))
+                fee = convertToSatoshis(Decimal(config.coin['minFee']))
                 sender_address = P2wpkhAddress(getAddress(sender))
                 sender_balance = 0
                 amount = convertToSatoshis(Decimal(data[2])) + fee
                 target_address = P2wpkhAddress("sugar1q" + data[1])
 
-                unspent = requests.get(f"{config['apiUrl']}/unspent/{sender_address.to_string()}").json()['result']
+                unspent = requests.get(f"{config.apiUrl}/unspent/{sender_address.to_string()}").json()['result']
 
                 txin = []
                 for i in range(0, len(unspent)):
@@ -392,29 +395,29 @@ def tip_or_withdrawFunc(update, ctx):
                         'raw': tx.serialize()
                     }
 
-                    txid = requests.post(f"{config['apiUrl']}/broadcast", data=post_data).json()['result']
+                    txid = requests.post(f"{config.apiUrl}/broadcast", data=post_data).json()['result']
 
-                    ctx.bot.send_message(chat_id=chID, text=f"Success, withdrew {data[2]} {config['coin']['ticker']} to address {target_address.to_string()} ")
+                    ctx.bot.send_message(chat_id=chID, text=f"Success, withdrew {data[2]} {config.coin['ticker']} to address {target_address.to_string()} ")
                     ctx.bot.send_message(chat_id=chID, text=f"[View Transaction](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
                 else:
                     ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to withdraw the specified amount.")
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined withdrawing {data[2]} {config['coin']['ticker']} to address {'sugar1q' + data[1]}")
+                ctx.bot.send_message(chat_id=chID, text=f"You declined withdrawing {data[2]} {config.coin['ticker']} to address {'sugar1q' + data[1]}")
 
 
 def getBalance(id: str):
 
     address = getAddress(id)
 
-    getBalance = requests.get(f"{config['apiUrl']}/balance/{address}").json()["result"]["balance"]
+    getBalance = requests.get(f"{config.apiUrl}/balance/{address}").json()["result"]["balance"]
     userBalance = getBalance / 100000000
 
     return userBalance
 
 
 def checkAdd(address: str):
-    check = requests.get(f"{config['apiUrl']}/balance/{address}").json()
+    check = requests.get(f"{config.apiUrl}/balance/{address}").json()
 
     if check['error']:
         return False
@@ -473,7 +476,7 @@ backup()
 
 def main():
 
-    updater = Updater(token=config["token"], use_context=True, workers=10)
+    updater = Updater(token=config.token, use_context=True, workers=10)
 
     dispatcher = updater.dispatcher
 

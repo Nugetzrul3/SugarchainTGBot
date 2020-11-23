@@ -1,3 +1,4 @@
 requests~=2.24.0
 python-telegram-bot<=12.8
 strict-rfc3339 == 0.7
+bitcoin-utils == 0.4.11
