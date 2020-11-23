@@ -155,7 +155,7 @@ def tip(update, ctx):
                                     ]
                                     reply_markup = InlineKeyboardMarkup(keyboard)
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                         text=f"You are about to send {amount} {config.coin['ticker']} with an additional fee of {format(config.coin['minFee'], '.8f')} SUGAR to @{target}. Please click Yes to confirm",
+                                                         text=f"You are about to send {amount} {config.coin['ticker']} with an additional fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to @{target}. Please click Yes to confirm",
                                                          reply_markup=reply_markup)
                                 else:
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
@@ -208,7 +208,7 @@ def withdraw(update, ctx):
                                 ]
                                 reply_markup = InlineKeyboardMarkup(keyboard)
                                 ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                     text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(config.coin['minFee'], '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
+                                                     text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
                                                      reply_markup=reply_markup)
                             else:
                                 ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
