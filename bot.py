@@ -111,13 +111,13 @@ def info(update, ctx):
         blocks = str(info['result']['blocks'])
         hash = formathash(int(info['result']['nethash']))
         diff = str(info['result']['difficulty'])
-        supply = str(convertToSugar(info['result']['supply']))
+        supply = str(format(convertToSugar(info['result']['supply']), '.8f'))
 
         ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Current block height: <code>{blocks}</code>
 Current network hashrate: <code>{hash}</code>
 Current network difficulty: <code>{diff}</code>
-Current circulating supply: <code>{supply}</code>
+Current circulating supply: <code>{supply}</code> SUGAR
 Current {config.coin['ticker']}/BTC price: {btc} BTC
 Current {config.coin['ticker']}/USD price: ${usd}
 """, parse_mode="HTML")
