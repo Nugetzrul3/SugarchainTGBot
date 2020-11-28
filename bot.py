@@ -54,7 +54,7 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
 4\\. /deposit
 5\\. /balance
 6\\. /withdraw address amount
-7\\. /export (only works in direct messages)
+7\\. /export \\(only works in direct messages\\)
 8\\. /about
                 """, parse_mode="MarkdownV2")
                 ctx.bot.send_message(chat_id=update.message.chat_id,
@@ -71,7 +71,7 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
 4\\. /deposit
 5\\. /balance
 6\\. /withdraw address amount
-7\\. /export (only works in direct messages)
+7\\. /export \\(only works in direct messages\\)
 8\\. /about
                 """, parse_mode="MarkdownV2")
                 ctx.bot.send_message(chat_id=update.message.chat_id,
