@@ -15,7 +15,7 @@ def addUser(username: str, id: str, wif: str):
 def checkUser(id: str):
     connection = sqlite3.connect("tguserdb.db")
     cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM userlist WHERE userid={id}")
+    cursor.execute(f"SELECT * FROM userlist WHERE userid='{id}'")
 
     if cursor.fetchall() == []:
         return False
@@ -38,9 +38,16 @@ def getUserID(username: str):
 def getUserName(id: str):
     connection = sqlite3.connect("tguserdb.db")
     cursor = connection.cursor()
-    cursor.execute(f"SELECT name FROM userlist WHERE userid={id}")
+    cursor.execute(f"SELECT name FROM userlist WHERE userid='{id}'")
 
     return list(cursor.fetchall()[0])[0]
+
+def updateUser(id: str, username: str):
+    connection = sqlite3.connect("tguserdb.db")
+    cursor = connection.cursor()
+    cursor.execute(f"UPDATE userlist SET name = '{username}' WHERE userid = '{id}'")
+    connection.commit()
+    connection.close()
 
 def getWIF(id: str):
     connection = sqlite3.connect("tguserdb.db")

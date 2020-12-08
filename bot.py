@@ -63,6 +63,9 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
                                           "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
                                      parse_mode="MarkdownV2")
             else:
+                if user["username"] != db.getUserName(str(user["id"])):
+                    db.updateUser(str(user["id"]), user["username"])
+
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
