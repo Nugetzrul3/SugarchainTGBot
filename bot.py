@@ -196,6 +196,7 @@ def withdraw(update, ctx):
 
         user = update.message.from_user
         args = update.message.text.split(" ")
+        sender_address = getAddress(user['id'])
 
         if not db.checkUser(user['id']):
             ctx.bot.send_message(chat_id=update.message.chat_id,
@@ -215,25 +216,28 @@ def withdraw(update, ctx):
 
             if address is not None:
                 if checkAdd("sugar1q" + address):
-                    if amount is not None:
-                        if isFloat(amount):
-                            if float(amount) > float(config.coin['minFee']):
-                                keyboard = [
-                                    [
-                                        InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
-                                        InlineKeyboardButton("No", callback_data=f"N,{address},{amount},{user['id']},w")
+                    if ("sugar1q" + address) != str(sender_address):
+                        if amount is not None:
+                            if isFloat(amount):
+                                if float(amount) > float(config.coin['minFee']):
+                                    keyboard = [
+                                        [
+                                            InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
+                                            InlineKeyboardButton("No", callback_data=f"N,{address},{amount},{user['id']},w")
+                                        ]
                                     ]
-                                ]
-                                reply_markup = InlineKeyboardMarkup(keyboard)
-                                ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                     text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
-                                                     reply_markup=reply_markup)
+                                    reply_markup = InlineKeyboardMarkup(keyboard)
+                                    ctx.bot.send_message(chat_id=update.message.chat_id,
+                                                         text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
+                                                         reply_markup=reply_markup)
+                                else:
+                                    ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
                             else:
-                                ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
+                                ctx.bot.send_message(chat_id=update.message.chat_id, text="The amount you have specified is not valid. Please try again.")
                         else:
-                            ctx.bot.send_message(chat_id=update.message.chat_id, text="The amount you have specified is not valid. Please try again.")
+                            ctx.bot.send_message(chat_id=update.message.chat_id, text="You did not specify the amount you wish to withdraw. Please try again")
                     else:
-                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You did not specify the amount you wish to withdraw. Please try again")
+                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You can't withdraw to your own deposit address 😄")
                 else:
                     ctx.bot.send_message(chat_id=update.message.chat_id, text="You have specified an invalid withdraw address. Try again with a valid address.")
             else:
