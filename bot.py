@@ -445,7 +445,7 @@ def getBalance(id: str):
     address = getAddress(id)
 
     getBalance = requests.get(f"{config.apiUrl}/balance/{address}").json()["result"]["balance"]
-    userBalance = getBalance / 100000000
+    userBalance = Decimal(str(getBalance / 100000000))
 
     return userBalance
 
