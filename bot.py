@@ -276,7 +276,7 @@ def balance(update, ctx):
         else:
             balance = getBalance(user["id"])
 
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You current balance: {balance} {config.coin['ticker']}")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your current balance: {balance} {config.coin['ticker']}")
 
 
 def export(update, ctx):
