@@ -46,42 +46,69 @@ def help(update, ctx):
                 wif = genAddress()
                 db.addUser(str(user["username"]), str(user["id"]), str(wif))
                 ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), You have been successfully registered", parse_mode="MarkdownV2")
-                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+                if update.message.chat.type == "private":
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
-2\\. /info
+2\\. /price
 3\\. /tip @user amount
 4\\. /deposit
 5\\. /balance
 6\\. /withdraw address amount
-7\\. /export \\(only works in direct messages\\)
+7\\. /export
 8\\. /about
-                """, parse_mode="MarkdownV2")
-                ctx.bot.send_message(chat_id=update.message.chat_id,
-                                     text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                          "address given by this bot\\. Download a full node here: "
-                                          "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
-                                     parse_mode="MarkdownV2")
+                    """, parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=update.message.chat_id,
+                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
+                                              "address given by this bot\\. Download a full node here: "
+                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         parse_mode="MarkdownV2")
+                else:
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+1\\. /help
+2\\. /price
+3\\. /tip @user amount
+                    """, parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=update.message.chat_id,
+                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
+                                              "address given by this bot\\. Download a full node here: "
+                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         parse_mode="MarkdownV2")
             else:
                 if user["username"] != db.getUserName(str(user["id"])):
                     db.updateUser(str(user["id"]), user["username"])
 
-                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+                if update.message.chat.type == "private":
+
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
-2\\. /info
+2\\. /price
 3\\. /tip @user amount
 4\\. /deposit
 5\\. /balance
 6\\. /withdraw address amount
-7\\. /export \\(only works in direct messages\\)
+7\\. /export
 8\\. /about
-                """, parse_mode="MarkdownV2")
-                ctx.bot.send_message(chat_id=update.message.chat_id,
-                                     text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                          "address given by this bot\\. Download a full node here: "
-                                          "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
-                                     parse_mode="MarkdownV2")
+                    """, parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=update.message.chat_id,
+                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
+                                              "address given by this bot\\. Download a full node here: "
+                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         parse_mode="MarkdownV2")
+                else:
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+1\\. /help
+2\\. /price
+3\\. /tip @user amount
+                    """, parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=update.message.chat_id,
+                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
+                                              "address given by this bot\\. Download a full node here: "
+                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         parse_mode="MarkdownV2")
         else:
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), please set a username before using this bot", parse_mode="MarkdownV2")
 
@@ -92,15 +119,19 @@ def about(update, ctx):
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
     if timestart < int(timestamp):
-        ctx.bot.send_message(chat_id=update.message.chat_id,
-                             text="""
+        if update.message.chat.type == "private":
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="""
 Hello there,
 I am the Sugarchain Telegram Tipbot, created by [salmaan1234](tg://user?id=905257225)\\. Run /help to see my full list of commands\\.
 This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)\\.
-                             """, parse_mode="MarkdownV2")
+                                 """, parse_mode="MarkdownV2")
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="This command only works in direct messages. See /help to see what commands work in group")
 
 
-def info(update, ctx):
+def price(update, ctx):
     gettime = str(update.message.date).split()
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
@@ -108,21 +139,11 @@ def info(update, ctx):
     if timestart < int(timestamp):
 
         price = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={config.coin['coin_name']}&vs_currencies=usd,btc").json()
-        info = requests.get(f"{config.apiUrl}/info").json()
 
         btc = str(format(price["sugarchain"]["btc"], '.8f'))
         usd = str(price["sugarchain"]["usd"])
 
-        blocks = str(info['result']['blocks'])
-        hash = formathash(int(info['result']['nethash']))
-        diff = str(info['result']['difficulty'])
-        supply = str(format(convertToSugar(info['result']['supply']), '.8f'))
-
         ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Current block height: <code>{blocks}</code>
-Current network hashrate: <code>{hash}</code>
-Current network difficulty: <code>{diff}</code>
-Current circulating supply: <code>{supply}</code> SUGAR
 Current {config.coin['ticker']}/BTC price: {btc} BTC
 Current {config.coin['ticker']}/USD price: ${usd}
 """, parse_mode="HTML")
@@ -194,54 +215,60 @@ def withdraw(update, ctx):
 
     if timestart < int(timestamp):
 
-        user = update.message.from_user
-        args = update.message.text.split(" ")
-        sender_address = getAddress(user['id'])
+        if update.message.chat.type == "private":
 
-        if not db.checkUser(user['id']):
-            ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="It looks like you haven't registered yet. Please run /help first to register yourself")
-        else:
-            address = None
-            try:
-                address = str(args[1])[7:]
-            except IndexError:
-                address = address
+            user = update.message.from_user
+            args = update.message.text.split(" ")
+            sender_address = getAddress(user['id'])
 
-            amount = None
-            try:
-                amount = args[2]
-            except IndexError:
-                amount = amount
-
-            if address is not None:
-                if checkAdd("sugar1q" + address):
-                    if ("sugar1q" + address) != str(sender_address):
-                        if amount is not None:
-                            if isFloat(amount):
-                                if float(amount) > float(config.coin['minFee']):
-                                    keyboard = [
-                                        [
-                                            InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
-                                            InlineKeyboardButton("No", callback_data=f"N,{address},{amount},{user['id']},w")
-                                        ]
-                                    ]
-                                    reply_markup = InlineKeyboardMarkup(keyboard)
-                                    ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                         text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
-                                                         reply_markup=reply_markup)
-                                else:
-                                    ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
-                            else:
-                                ctx.bot.send_message(chat_id=update.message.chat_id, text="The amount you have specified is not valid. Please try again.")
-                        else:
-                            ctx.bot.send_message(chat_id=update.message.chat_id, text="You did not specify the amount you wish to withdraw. Please try again")
-                    else:
-                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You can't withdraw to your own deposit address 😄")
-                else:
-                    ctx.bot.send_message(chat_id=update.message.chat_id, text="You have specified an invalid withdraw address. Try again with a valid address.")
+            if not db.checkUser(user['id']):
+                ctx.bot.send_message(chat_id=update.message.chat_id,
+                                     text="It looks like you haven't registered yet. Please run /help first to register yourself")
             else:
-                ctx.bot.send_message(chat_id=update.message.chat_id, text="No withdraw address specified")
+                address = None
+                try:
+                    address = str(args[1])[7:]
+                except IndexError:
+                    address = address
+
+                amount = None
+                try:
+                    amount = args[2]
+                except IndexError:
+                    amount = amount
+
+                if address is not None:
+                    if checkAdd("sugar1q" + address):
+                        if ("sugar1q" + address) != str(sender_address):
+                            if amount is not None:
+                                if isFloat(amount):
+                                    if float(amount) > float(config.coin['minFee']):
+                                        keyboard = [
+                                            [
+                                                InlineKeyboardButton("Yes", callback_data=f"Y,{address},{amount},{user['id']},w"),
+                                                InlineKeyboardButton("No", callback_data=f"N,{address},{amount},{user['id']},w")
+                                            ]
+                                        ]
+                                        reply_markup = InlineKeyboardMarkup(keyboard)
+                                        ctx.bot.send_message(chat_id=update.message.chat_id,
+                                                             text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
+                                                             reply_markup=reply_markup)
+                                    else:
+                                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
+                                else:
+                                    ctx.bot.send_message(chat_id=update.message.chat_id, text="The amount you have specified is not valid. Please try again.")
+                            else:
+                                ctx.bot.send_message(chat_id=update.message.chat_id, text="You did not specify the amount you wish to withdraw. Please try again")
+                        else:
+                            ctx.bot.send_message(chat_id=update.message.chat_id, text="You can't withdraw to your own deposit address 😄")
+                    else:
+                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You have specified an invalid withdraw address. Try again with a valid address.")
+                else:
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text="No withdraw address specified")
+
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="This command only works in direct messages. See /help to see what commands work in group")
 
 
 def deposit(update, ctx):
@@ -251,16 +278,21 @@ def deposit(update, ctx):
 
     if timestart < int(timestamp):
 
-        user = update.message.from_user
+        if update.message.chat.type == "private":
 
-        if not db.checkUser(user["id"]):
-            ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
+            user = update.message.from_user
+
+            if not db.checkUser(user["id"]):
+                ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
+            else:
+
+                address = getAddress(user["id"])
+
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your deposit address: <code>{address}</code>", parse_mode="HTML")
+
         else:
-
-            address = getAddress(user["id"])
-
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your deposit address: <code>{address}</code>", parse_mode="HTML")
-
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="This command only works in direct messages. See /help to see what commands work in group")
 
 def balance(update, ctx):
     gettime = str(update.message.date).split()
@@ -269,14 +301,19 @@ def balance(update, ctx):
 
     if timestart < int(timestamp):
 
-        user = update.message.from_user
+        if update.message.chat.type == "private":
 
-        if not db.checkUser(user["id"]):
-            ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
+            user = update.message.from_user
+
+            if not db.checkUser(user["id"]):
+                ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
+            else:
+                balance = getBalance(user["id"])
+
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your current balance: {balance} {config.coin['ticker']}")
         else:
-            balance = getBalance(user["id"])
-
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your current balance: {balance} {config.coin['ticker']}")
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="This command only works in direct messages. See /help to see what commands work in group")
 
 
 def export(update, ctx):
@@ -518,7 +555,7 @@ def main():
     dispatcher = updater.dispatcher
 
     help_command = CommandHandler('help', help)
-    price_command = CommandHandler('info', info)
+    price_command = CommandHandler('price', price)
     tip_command = CommandHandler('tip', tip)
     deposit_command = CommandHandler('deposit', deposit)
     balance_command = CommandHandler('balance', balance)
