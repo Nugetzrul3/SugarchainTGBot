@@ -51,12 +51,13 @@ def help(update, ctx):
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
 2\\. /price
-3\\. /tip @user amount
-4\\. /deposit
-5\\. /balance
-6\\. /withdraw address amount
-7\\. /export
-8\\. /about
+3\\. /info
+4\\. /tip @user amount
+5\\. /deposit
+6\\. /balance
+7\\. /withdraw address amount
+8\\. /export
+9\\. /about
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
                                          text="*Please Note: * It is highly recommended that you do not directly mine to the "
@@ -85,12 +86,13 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
 Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
 1\\. /help
 2\\. /price
-3\\. /tip @user amount
-4\\. /deposit
-5\\. /balance
-6\\. /withdraw address amount
-7\\. /export
-8\\. /about
+3\\. /info
+4\\. /tip @user amount
+5\\. /deposit
+6\\. /balance
+7\\. /withdraw address amount
+8\\. /export
+9\\. /about
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
                                          text="*Please Note: * It is highly recommended that you do not directly mine to the "
@@ -147,6 +149,32 @@ def price(update, ctx):
 Current {config.coin['ticker']}/BTC price: {btc} BTC
 Current {config.coin['ticker']}/USD price: ${usd}
 """, parse_mode="HTML")
+
+def info(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+
+        if update.message.chat.type == "private":
+
+            info = requests.get(f"{config.apiUrl}/info").json()
+
+            height = str(info["result"]["blocks"])
+            hashrate = formathash(info["result"]["nethash"])
+            diff = format(info["result"]["difficulty"], ".8f")
+            supply = format(info["result"]["supply"] / 100000000, ".8f")
+
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
+Current block height: <code>{height}</code>
+Current network hashrate: <code>{hashrate}</code>
+Current difficulty: <code>{diff}</code>
+Current circulating supply: <code>{supply}</code> {config.coin["ticker"]}
+""", parse_mode="HTML")
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text="This command only works in direct messages. See /help to see what commands work in group")
 
 
 def tip(update, ctx):
@@ -340,15 +368,15 @@ def isFloat(amount):
 
 def formathash(hash: int):
     if hash < 1e3:
-        return str(hash) + " H/s"
+        return format(hash, ".2f") + " H/s"
     elif 1e3 <= hash < 1e6:
-        return str(hash / 1e3) + " KH/s"
+        return format(hash / 1e3, ".2f") + " KH/s"
     elif 1e6 <= hash < 1e9:
-        return str(hash / 1e6) + " MH/s"
+        return format(hash / 1e6, ".2f") + " MH/s"
     elif 1e9 <= hash < 1e12:
-        return str(hash / 1e9) + " GH/s"
+        return format(hash / 1e9, ".2f") + " GH/s"
     elif 1e12 <= hash < 1e15:
-        return str(hash / 1e12) + " TH/s"
+        return format(hash / 1e12, ".2f") + " TH/s"
 
 
 def genAddress():
@@ -556,6 +584,7 @@ def main():
 
     help_command = CommandHandler('help', help)
     price_command = CommandHandler('price', price)
+    info_command = CommandHandler('info', info)
     tip_command = CommandHandler('tip', tip)
     deposit_command = CommandHandler('deposit', deposit)
     balance_command = CommandHandler('balance', balance)
@@ -566,6 +595,7 @@ def main():
     tip_or_withdraw_handler = CallbackQueryHandler(tip_or_withdrawFunc)
     dispatcher.add_handler(help_command)
     dispatcher.add_handler(price_command)
+    dispatcher.add_handler(info_command)
     dispatcher.add_handler(tip_command)
     dispatcher.add_handler(deposit_command)
     dispatcher.add_handler(balance_command)
