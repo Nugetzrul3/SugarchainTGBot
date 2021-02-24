@@ -2,24 +2,25 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.utils.helpers import escape_markdown
 
-import logging
-import requests
-import db
-import strict_rfc3339
-import time
-import os
-import platform
-import threading
 from datetime import datetime
 from decimal import Decimal
+import strict_rfc3339
+import threading
+import requests
+import platform
+import logging
+import time
+import db
+import os
 
-from bitcoinutils.setup import setup
-from bitcoinutils.keys import P2wpkhAddress, PrivateKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
+from bitcoinutils.keys import P2wpkhAddress, PrivateKey
 from bitcoinutils.script import Script
+from bitcoinutils.setup import setup
 from bitcoinutils import constants
 
 from configs import config
+from langs import langs as lang
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -37,18 +38,26 @@ def help(update, ctx):
     timetoconvert = gettime[0] + "T" + gettime[1]
     timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
 
+    print(update.message.chat_id)
+
     if timestart < int(timestamp):
 
         user = update.message.from_user
+        language = str()
+
+        if update.message.chat.type == "private":
+            language = db.getLang(user["id"])
+        else:
+            language = getLang(update.message.chat_id)
 
         if user["username"]:
             if not db.checkUser(str(user["id"])):
                 wif = genAddress()
                 db.addUser(str(user["username"]), str(user["id"]), str(wif))
-                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), You have been successfully registered", parse_mode="MarkdownV2")
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), {lang[language]['help']['success-regsiter']}", parse_mode="MarkdownV2")
                 if update.message.chat.type == "private":
                     ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+{lang[language]['help']['part-1']} [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. {lang[language]['help']['part-2']}
 1\\. /help
 2\\. /price
 3\\. /info
@@ -57,24 +66,21 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
 6\\. /balance
 7\\. /withdraw address amount
 8\\. /export
-9\\. /about
+9\\. /setlang lang \\(en, zh, id\\)
+10\\. /about
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                              "address given by this bot\\. Download a full node here: "
-                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         text=lang[language]['help']['warning-msg'],
                                          parse_mode="MarkdownV2")
                 else:
                     ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+{lang[language]['help']['part-1']} [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. {lang[language]['help']['part-2']}
 1\\. /help
 2\\. /price
 3\\. /tip @user amount
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                              "address given by this bot\\. Download a full node here: "
-                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         text=lang[language]['help']['warning-msg'],
                                          parse_mode="MarkdownV2")
             else:
                 if user["username"] != db.getUserName(str(user["id"])):
@@ -83,7 +89,7 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
                 if update.message.chat.type == "private":
 
                     ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+{lang[language]['help']['part-1']} [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. {lang[language]['help']['part-2']}
 1\\. /help
 2\\. /price
 3\\. /info
@@ -92,46 +98,24 @@ Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\
 6\\. /balance
 7\\. /withdraw address amount
 8\\. /export
-9\\. /about
+9\\. /setlang lang \\(en, zh, id\\)
+10\\. /about
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                              "address given by this bot\\. Download a full node here: "
-                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         text=lang[language]['help']['warning-msg'],
                                          parse_mode="MarkdownV2")
                 else:
                     ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Hey there [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. Here are my commands:
+{lang[language]['help']['part-1']} [{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']})\\. {lang[language]['help']['part-2']}
 1\\. /help
 2\\. /price
 3\\. /tip @user amount
                     """, parse_mode="MarkdownV2")
                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                         text="*Please Note: * It is highly recommended that you do not directly mine to the "
-                                              "address given by this bot\\. Download a full node here: "
-                                              "[Full Node](https://github\\.com/sugarchain\\-project/sugarchain/releases/latest)",
+                                         text=lang[language]['help']['warning-msg'],
                                          parse_mode="MarkdownV2")
         else:
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"[{escape_markdown(user['first_name'], 2)}](tg://user?id={user['id']}), please set a username before using this bot", parse_mode="MarkdownV2")
-
-
-def about(update, ctx):
-    gettime = str(update.message.date).split()
-    timetoconvert = gettime[0] + "T" + gettime[1]
-    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
-
-    if timestart < int(timestamp):
-        if update.message.chat.type == "private":
-            ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="""
-Hello there,
-I am the Sugarchain Telegram Tipbot, created by [salmaan1234](tg://user?id=905257225)\\. Run /help to see my full list of commands\\.
-This bot is fully [Open Source](https://github\\.com/Nugetzrul3/SugarchainTGBot)\\.
-                                 """, parse_mode="MarkdownV2")
-        else:
-            ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="This command only works in direct messages. See /help to see what commands work in group")
-
 
 def price(update, ctx):
     gettime = str(update.message.date).split()
@@ -157,6 +141,14 @@ def info(update, ctx):
 
     if timestart < int(timestamp):
 
+        user = update.message.from_user
+        language = str()
+
+        if update.message.chat.type == "private":
+            language = db.getLang(user["id"])
+        else:
+            language = getLang(update.message.chat_id)
+
         if update.message.chat.type == "private":
 
             info = requests.get(f"{config.apiUrl}/info").json()
@@ -167,15 +159,14 @@ def info(update, ctx):
             supply = format(info["result"]["supply"] / 100000000, ".8f")
 
             ctx.bot.send_message(chat_id=update.message.chat_id, text=f"""
-Current block height: <code>{height}</code>
-Current network hashrate: <code>{hashrate}</code>
-Current difficulty: <code>{diff}</code>
-Current circulating supply: <code>{supply}</code> {config.coin["ticker"]}
+{lang[language]['info']['block-height']} <code>{height}</code>
+{lang[language]['info']['net-hash']} <code>{hashrate}</code>
+{lang[language]['info']['difficulty']} <code>{diff}</code>
+{lang[language]['info']['supply']} <code>{supply}</code> {config.coin["ticker"]}
 """, parse_mode="HTML")
         else:
             ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="This command only works in direct messages. See /help to see what commands work in group")
-
+                                 text=lang[language]['error']['general']['dm-only'])
 
 def tip(update, ctx):
     gettime = str(update.message.date).split()
@@ -187,9 +178,16 @@ def tip(update, ctx):
         user = update.message.from_user
         args = update.message.text.split(" ")
 
+        language = str()
+
+        if update.message.chat.type == "private":
+            language = db.getLang(user["id"])
+        else:
+            language = getLang(update.message.chat_id)
+
         if not db.checkUser(user["id"]):
             ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="It looks like you haven't registered yet. Please run /help first to register yourself")
+                                 text=lang[language]['error']['general']['dm-only'])
         else:
             target = None
             try:
@@ -206,35 +204,81 @@ def tip(update, ctx):
             if target is not None:
                 if not db.getUserID(target):
                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                         text="Oops, looks like your sending to a user who hasn't registered or has changed their username. Ask them to do /help to register/re-register!\nPlease be mindful that usernames are case senstive. Make sure that the case of the target is correct.")
+                                         text=lang[language]['error']['tip']['re-register'])
                 else:
                     if user["username"] == target:
-                        ctx.bot.send_message(chat_id=update.message.chat_id, text="😆 You can't tip yourself!")
+                        ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[language]['tip']['tip-yourself'])
                     else:
                         if amount is not None:
                             if isFloat(amount):
                                 if float(amount) > float(config.coin['minFee']):
+                                    print(db.getUserID(target))
                                     keyboard = [
                                         [
                                             InlineKeyboardButton("Yes", callback_data=f"Y,{db.getUserID(target)},{amount},{user['id']},t"),
-                                            InlineKeyboardButton("No", callback_data=f"N,{target},{amount},{user['id']},t")
+                                            InlineKeyboardButton("No", callback_data=f"N,{db.getUserID(target)},{amount},{user['id']},t")
                                         ]
                                     ]
                                     reply_markup = InlineKeyboardMarkup(keyboard)
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                         text=f"You are about to send {amount} {config.coin['ticker']} with an additional fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to @{target}. Please click Yes to confirm",
+                                                         text=f"{lang[language]['tip']['part-1']} {amount} {config.coin['ticker']} {lang[language]['tip']['part-2']} {format(float(config.coin['minFee']), '.8f')} {lang[language]['tip']['part-2']} @{target}. {lang[language]['tip']['part-4']}",
                                                          reply_markup=reply_markup)
                                 else:
                                     ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                         text="You cannot send negative amounts or amounts less than 0.00001!")
+                                                         text=lang[language]['error']['tip']['negative-amount'])
                             else:
                                 ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                     text="Invalid amount of SUGAR. Please try again")
+                                                     text=lang[language]['error']['tip']['invalid-amount'])
                         else:
-                            ctx.bot.send_message(chat_id=update.message.chat_id, text="No amount specified!")
+                            ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[language]['error']['tip']['no-amount'])
             else:
-                ctx.bot.send_message(chat_id=update.message.chat_id, text="No user specified!")
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[language]['error']['tip']['no-user'])
 
+def deposit(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+
+        user = update.message.from_user
+        userlang = db.getLang(user['id'])
+
+        if update.message.chat.type == "private":
+
+            if not db.checkUser(user["id"]):
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['not-registered'])
+            else:
+
+                address = getAddress(user["id"])
+
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"{lang[userlang]['deposit']['part-1']} <code>{address}</code>", parse_mode="HTML")
+
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text=lang[userlang]['error']['general']['dm-only'])
+
+def balance(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+
+        user = update.message.from_user
+        userlang = db.getLang(user['id'])
+
+        if update.message.chat.type == "private":
+
+            if not db.checkUser(user["id"]):
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['not-registered'])
+            else:
+                balance = getBalance(user["id"])
+
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"{lang[userlang]['balance']['part-1']} {balance} {config.coin['ticker']}")
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text=lang[userlang]['error']['general']['dm-only'])
 
 def withdraw(update, ctx):
     gettime = str(update.message.date).split()
@@ -243,15 +287,17 @@ def withdraw(update, ctx):
 
     if timestart < int(timestamp):
 
+        user = update.message.from_user
+        userlang = db.getLang(user["id"])
+
         if update.message.chat.type == "private":
 
-            user = update.message.from_user
             args = update.message.text.split(" ")
             sender_address = getAddress(user['id'])
 
             if not db.checkUser(user['id']):
                 ctx.bot.send_message(chat_id=update.message.chat_id,
-                                     text="It looks like you haven't registered yet. Please run /help first to register yourself")
+                                     text=lang[userlang]['error']['not-registered'])
             else:
                 address = None
                 try:
@@ -279,70 +325,24 @@ def withdraw(update, ctx):
                                         ]
                                         reply_markup = InlineKeyboardMarkup(keyboard)
                                         ctx.bot.send_message(chat_id=update.message.chat_id,
-                                                             text=f"You are about to withdraw {amount} {config.coin['ticker']}, with a fee of {format(float(config.coin['minFee']), '.8f')} SUGAR to {'sugar1q' + address}. Please click Yes to confirm",
+                                                             text=f"{lang[userlang]['withdraw']['part-1']} {amount} {config.coin['ticker']}, {lang[userlang]['withdraw']['part-2']} {format(float(config.coin['minFee']), '.8f')} {lang[userlang]['withdraw']['part-3']} {'sugar1q' + address}. {lang[userlang]['withdraw']['part-4']}",
                                                              reply_markup=reply_markup)
                                     else:
-                                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You cannot withdraw negative amounts or amounts less than 0.00001")
+                                        ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['negative-amount'])
                                 else:
-                                    ctx.bot.send_message(chat_id=update.message.chat_id, text="The amount you have specified is not valid. Please try again.")
+                                    ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['invalid-amount'])
                             else:
-                                ctx.bot.send_message(chat_id=update.message.chat_id, text="You did not specify the amount you wish to withdraw. Please try again")
+                                ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['no-amount'])
                         else:
-                            ctx.bot.send_message(chat_id=update.message.chat_id, text="You can't withdraw to your own deposit address 😄")
+                            ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['same-address'])
                     else:
-                        ctx.bot.send_message(chat_id=update.message.chat_id, text="You have specified an invalid withdraw address. Try again with a valid address.")
+                        ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['invalid-address'])
                 else:
-                    ctx.bot.send_message(chat_id=update.message.chat_id, text="No withdraw address specified")
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['withdraw']['no-address'])
 
         else:
             ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="This command only works in direct messages. See /help to see what commands work in group")
-
-
-def deposit(update, ctx):
-    gettime = str(update.message.date).split()
-    timetoconvert = gettime[0] + "T" + gettime[1]
-    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
-
-    if timestart < int(timestamp):
-
-        if update.message.chat.type == "private":
-
-            user = update.message.from_user
-
-            if not db.checkUser(user["id"]):
-                ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
-            else:
-
-                address = getAddress(user["id"])
-
-                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your deposit address: <code>{address}</code>", parse_mode="HTML")
-
-        else:
-            ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="This command only works in direct messages. See /help to see what commands work in group")
-
-def balance(update, ctx):
-    gettime = str(update.message.date).split()
-    timetoconvert = gettime[0] + "T" + gettime[1]
-    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
-
-    if timestart < int(timestamp):
-
-        if update.message.chat.type == "private":
-
-            user = update.message.from_user
-
-            if not db.checkUser(user["id"]):
-                ctx.bot.send_message(chat_id=update.message.chat_id, text="It looks like you haven't registered yet. Please run /help first to register yourself")
-            else:
-                balance = getBalance(user["id"])
-
-                ctx.bot.send_message(chat_id=update.message.chat_id, text=f"Your current balance: {balance} {config.coin['ticker']}")
-        else:
-            ctx.bot.send_message(chat_id=update.message.chat_id,
-                                 text="This command only works in direct messages. See /help to see what commands work in group")
-
+                                 text=lang[userlang]['error']['dm-only'])
 
 def export(update, ctx):
     gettime = str(update.message.date).split()
@@ -351,11 +351,51 @@ def export(update, ctx):
 
     if timestart < int(timestamp):
         user = update.message.from_user
+        userlang = db.getLang(user["id"])
         if update.message.chat.type == "private":
-            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"You're exported secret key: <code>{db.getWIF(user['id'])}</code>. <b>Important:</b> Do not share this key. If you do share this key, all your SUGAR will be lost.", parse_mode="HTML")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=f"{lang[userlang]['export']['part-1']} <code>{db.getWIF(user['id'])}</code>. {lang[userlang]['export']['part-2']}", parse_mode="HTML")
         else:
-            ctx.bot.send_message(chat_id=update.message.chat_id, text="This command only works in private messages."
-                                                                      " Send me a private message instead :D")
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['error']['general']['dm-only'])
+
+def setLang(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+        user = update.message.from_user
+        args = update.message.text.split(" ")
+        language = getLang(update.message.chat_id)
+
+        if update.message.chat.type == "private":
+            if args[1] in ["en", "zh", "id", "ru"]:
+                if args[1] == db.getLang(user["id"]):
+                    userlang = db.getLang(user["id"])
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['setlang']['same-lang'])
+                else:
+                    db.setLang(user["id"], args[1])
+                    userlang = db.getLang(user["id"])
+                    ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['setlang']['set-lang'])
+            else:
+                userlang = db.getLang(user["id"])
+                ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[userlang]['setlang']['invalid-lang'])
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id, text=lang[language]['error']['general']['dm-only'])
+
+def about(update, ctx):
+    gettime = str(update.message.date).split()
+    timetoconvert = gettime[0] + "T" + gettime[1]
+    timestamp = strict_rfc3339.rfc3339_to_timestamp(timetoconvert)
+
+    if timestart < int(timestamp):
+        user = update.message.from_user
+        language = getLang(update.message.chat_id)
+        if update.message.chat.type == "private":
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text=lang[language]['about'], parse_mode="MarkdownV2")
+        else:
+            ctx.bot.send_message(chat_id=update.message.chat_id,
+                                 text=lang[language]['error']['general']['dm-only'])
 
 ### FUNCTIONS
 
@@ -365,6 +405,16 @@ def isFloat(amount):
         return True
     except ValueError:
         return False
+
+def getLang(chatid):
+    if str(chatid) == config.chat['chinese']:
+        return 'zh'
+    elif str(chatid) == config.chat['indonesian']:
+        return 'id'
+    elif str(chatid) == config.chat['russian']:
+        return 'ru'
+    else:
+        return 'en'
 
 def formathash(hash: int):
     if hash < 1e3:
@@ -398,6 +448,7 @@ def tip_or_withdrawFunc(update, ctx):
     query.answer()
     data = str(query.data).split(",")
     sender = str(query.from_user.id)
+    userlang = db.getLang(sender)
     if sender == data[3]:
         if data[4] == "t":
             target = data[1]
@@ -443,14 +494,14 @@ def tip_or_withdrawFunc(update, ctx):
 
                     txid = requests.post(f"{config.apiUrl}/broadcast", data=post_data).json()['result']
 
-                    ctx.bot.send_message(chat_id=chID, text=f"Success, sent @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}.")
-                    ctx.bot.send_message(chat_id=chID, text=f"[View Transaction](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=chID, text=f"{lang[userlang]['tip-yes-no']['text-yes']} @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}.")
+                    ctx.bot.send_message(chat_id=chID, text=f"[{lang[userlang]['tip-yes-no']['view-transaction']}](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
                 else:
-                    ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to tip that amount")
+                    ctx.bot.send_message(chat_id=chID, text=lang[userlang]['error']['tip']['insufficient-funds'])
 
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined sending @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}")
+                ctx.bot.send_message(chat_id=chID, text=f"{lang[userlang]['tip-yes-no']['text-no']} @{db.getUserName(data[1])} {data[2]} {config.coin['ticker']}")
 
         elif data[4] == "w":
             if data[0] == "Y":
@@ -496,13 +547,13 @@ def tip_or_withdrawFunc(update, ctx):
 
                     txid = requests.post(f"{config.apiUrl}/broadcast", data=post_data).json()['result']
 
-                    ctx.bot.send_message(chat_id=chID, text=f"Success, withdrew {data[2]} {config.coin['ticker']} to address {target_address.to_string()} ")
-                    ctx.bot.send_message(chat_id=chID, text=f"[View Transaction](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
+                    ctx.bot.send_message(chat_id=chID, text=f"{lang[userlang]['withdraw-yes-no']['text-yes']} {data[2]} {config.coin['ticker']} to address {target_address.to_string()} ")
+                    ctx.bot.send_message(chat_id=chID, text=f"[{lang[userlang]['withdraw-yes-no']['view-transaction']}](https://sugar\\.wtf/esplora/tx/{str(txid)})", parse_mode="MarkdownV2")
                 else:
-                    ctx.bot.send_message(chat_id=chID, text="You do not have enough funds to withdraw the specified amount.")
+                    ctx.bot.send_message(chat_id=chID, text=lang[userlang]['error']['withdraw']['insufficient-funds'])
             elif data[0] == "N":
                 ctx.bot.delete_message(chat_id=chID, message_id=msgID)
-                ctx.bot.send_message(chat_id=chID, text=f"You declined withdrawing {data[2]} {config.coin['ticker']} to address {'sugar1q' + data[1]}")
+                ctx.bot.send_message(chat_id=chID, text=f"{lang[userlang]['withdraw-yes-no']['text-no']} {data[2]} {config.coin['ticker']} to address {'sugar1q' + data[1]}")
 
 
 def getBalance(id: str):
@@ -589,6 +640,7 @@ def main():
     deposit_command = CommandHandler('deposit', deposit)
     balance_command = CommandHandler('balance', balance)
     withdraw_command = CommandHandler('withdraw', withdraw)
+    setlang_command = CommandHandler('setlang', setLang)
     about_command = CommandHandler('about', about)
     export_command = CommandHandler('export', export)
 
@@ -600,6 +652,7 @@ def main():
     dispatcher.add_handler(deposit_command)
     dispatcher.add_handler(balance_command)
     dispatcher.add_handler(withdraw_command)
+    dispatcher.add_handler(setlang_command)
     dispatcher.add_handler(about_command)
     dispatcher.add_handler(export_command)
 
